@@ -46,10 +46,21 @@ copy .env.example .env
 copy personas.example.json personas.json
 ```
 
-Luego:
-- Abre `.env` con el Bloc de notas y pega **tu propia** clave gratis de Gemini en `GEMINI_API_KEY=`
-  (se saca en https://aistudio.google.com/apikey). **No uses la de otra persona.**
-- No necesitas conectar WhatsApp para colaborar: las pruebas funcionan sin él.
+### Tu clave de Gemini (obligatoria para probar la IA en tu computadora)
+
+Pati usa Gemini (la IA de Google) para entender los mensajes. Para que funcione en tu PC necesitas **tu propia clave**, gratis:
+
+1. Entra a https://aistudio.google.com/apikey con tu cuenta de Google y pulsa **Create API key**.
+2. Abre el archivo `.env` (en la carpeta `paticare`) con el Bloc de notas.
+3. Pega tu clave justo después del `=`, sin espacios ni comillas: `GEMINI_API_KEY=tu_clave_aqui`. Guarda.
+
+Reglas de la clave:
+- **Es personal: no la compartas ni la pegues en chats, GitHub o capturas.** El archivo `.env` ya está ignorado por Git y no se sube.
+- **No uses la clave de Andrés ni de otra persona**: el plan gratis tiene un límite diario y se gastaría entre todos.
+- Sin clave, las pruebas automáticas igual pasan (usan una IA falsa), pero Pati no podrá interpretar mensajes reales.
+  Para probar con Gemini de verdad, la clave tiene que estar en tu `.env`.
+
+No necesitas conectar WhatsApp para colaborar.
 
 Comprueba que todo está bien:
 
