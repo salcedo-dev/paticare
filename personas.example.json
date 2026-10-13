@@ -1,0 +1,6 @@
+[
+  {"telefono": "51900000001", "lid": null, "nombre": "Dueño Demo", "rol": "maestro"},
+  {"telefono": "51900000002", "lid": null, "nombre": "Trabajador Uno", "rol": "trabajador"},
+  {"telefono": "51900000003", "lid": null, "nombre": "Trabajador Dos", "rol": "trabajador"},
+  {"telefono": "51900000004", "lid": null, "nombre": "Cliente Demo", "rol": "cliente"}
+]

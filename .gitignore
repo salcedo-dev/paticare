@@ -1,0 +1,17 @@
+# Secretos y datos reales: NUNCA se suben
+.env
+personas.json
+*.db
+*.db-*
+*.sqlite3
+*.sqlite3-*
+*.bak*
+
+# Entorno y basura de Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+.vscode/
+.idea/
+.claude/
