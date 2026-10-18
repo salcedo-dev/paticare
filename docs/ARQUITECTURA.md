@@ -22,6 +22,11 @@ No es todavía una operación comercial.
 | IA | Gemini por REST, clave de Andrés, plan gratis, con modelos de respaldo (sección 6). |
 | Datos | SQLite, una base por negocio. |
 | Consentimiento | Los negocios aceptan participar en el piloto. |
+| Quién confirma | **Todo lo que escribe a otras personas pide el SÍ del dueño** (tareas, avisos, encuestas, cancelaciones, recordatorios). Pati no inventa datos: si falta algo, pregunta. Cada trabajador ve y toca solo lo suyo. |
+| Comandos del dueño | Mensajes que **empiezan con punto** (`.tarea`, `.encuesta`, `.estado`, `.resultados`, `.cancelar`...). Son reglas fijas, sin IA: siempre hacen lo mismo, no gastan cupo y reducen malentendidos. El texto normal sigue yendo a la IA. Ver sección 13. |
+| Reconocer a las personas | WhatsApp a veces manda un **ID interno (LID)** sin el teléfono. Pati lo traduce leyendo (solo lectura) la tabla `whatsmeow_lid_map` de la sesión de WhatsApp y aprende el ID sola; ya no se copian IDs a mano. |
+| Botones y encuestas | Los avisos al equipo llevan **botones de respuesta rápida** (✅ Listo · ⚠️ Problema · ⏳ Más tiempo) cuyo id lleva el número de la tarea, así nunca hay que preguntar "¿cuál?". Las **encuestas de WhatsApp** sirven para preguntarle algo al equipo y para ELEGIR (selectores). Probado con WhatsApp real: los toques llegan como `templateButtonReplyMessage`; neonize 0.5.2 falla al leer votos y se resolvió en `main._descifrar_voto`. Se apagan con `"botones": false`. |
+| Lo que Pati no entiende | Un trabajador que escribe un pedido o una duda recibe "Se lo pasé a Andrés" y **el dueño recibe el mensaje** (tope de 5 por hora; los "ok"/emojis no se pasan). |
 
 ## 2. Entornos de prueba pedidos
 
@@ -43,8 +48,8 @@ PC de Andrés (24 h)                                    main.py   (uno por negoc
   datos/prueba/   (pati.db, sesión, personas.json, negocio.json)           │
   datos/docencia/ (idem)                                                   ▼
   datos/<otro>/                                                logica.py ── ia.py ── Gemini (modelos en cadena)
-                                                                  │
-                                                                db.py ── SQLite del negocio
+  │   └─ comandos.py (órdenes del dueño con punto)
+  db.py ── SQLite del negocio
 ```
 
 Cada negocio vive en su carpeta: base, sesión de WhatsApp, personas y configuración. Un proceso nunca lee la carpeta de otro.
@@ -140,7 +145,40 @@ de `lineas` en `negocio.json`; el programa funciona solo con la central.
 |---|---|---|
 | 5 | ✅ Plazos y seguimiento automático | Recordatorio antes de vencer, aviso al vencer, aviso al dueño si no se completa, "más tiempo" |
 | 6 | ✅ Control del dueño | Cancelar, reasignar y cambiar el plazo de una tarea (con confirmación); deshacer (~30 min); "recuérdale a Mafer"; anuncio al equipo; historial de una tarea |
+| 6b | ✅ Botones, encuestas y comandos | Botones por tarea, encuestas al equipo (resultados, recordatorio único, check-in, "problema" con detalle), selectores para elegir (cancelar, completar, problema, más tiempo), comandos con punto, mensajes libres que se pasan al dueño |
 | 7 | Operación confiable | Reinicio automático, registro de errores en archivo, aviso si Pati se cae o llega al 80 % del cupo de Gemini, copia diaria de la base |
 | 8 | Rutina y métricas | Tareas recurrentes y listas de apertura/cierre, resumen semanal, exportar a Excel (cumplimiento, tiempos) para validar la hipótesis |
 | 9 | Entrada natural | Notas de voz que se convierten en tareas; foto como evidencia al completar |
 | 10 | Opcionales | Pati en el grupo del equipo (resumen y respuestas solo si la etiquetan); varios negocios compartiendo la línea central |
+
+## 13. Cómo está construida la parte del equipo (estado actual)
+
+**Módulos**
+
+| Archivo | Para qué |
+|---|---|
+| `main.py` | Conecta con WhatsApp (neonize), envía con pausa "humana", reconoce botones, votos y personas, corre los trabajos programados. |
+| `logica.py` | Toda la conversación sin WhatsApp: flujos del dueño, del trabajador y del cliente, seguimiento de plazos, encuestas, selectores. |
+| `comandos.py` | Los comandos del dueño con punto; reutilizan la lógica de `logica.py`. |
+| `ia.py` | Gemini (solo para entender lo que escribe el dueño en texto normal). |
+| `db.py` / `negocio.py` / `agenda.py` | Datos (SQLite), configuración del negocio y horarios libres. |
+
+**Qué usa IA y qué no.** Solo el texto normal del dueño pasa por Gemini. Trabajadores, clientes, botones, encuestas y comandos
+usan reglas fijas: no gastan cupo y se pueden probar sin WhatsApp (622 pruebas con salida y reloj simulados).
+
+**Comandos del dueño** (solo si el punto va al inicio; lo que avisa a otros pide SÍ):
+`.tarea` · `.estado` · `.encuesta` · `.resultados` · `.checkin` · `.recordar` · `.resolver` · `.cancelar` (solo = lista para marcar;
+`.cancelar .mafer` = solo las de ella; `.cancelar probar los botones` = esa tarea para todos) · `.reasignar` · `.plazo` · `.aviso` ·
+`.historial` · `.equipo` · `.agenda` · `.deshacer` · `.ayuda`. Los nombres con punto (`.mafer`) valen en todos.
+
+**Encuestas.** Se guardan en la base (`encuestas`, `encuesta_envios`, `votos`), así los votos se reconocen aunque Pati se reinicie.
+Las órdenes del dueño que esperan su SÍ se pueden corregir ("sin Marco", "solo a Mafer"); lo que no es SÍ/NO no se pasa a la IA.
+Quien marca una opción de problema cuenta qué pasa; le llega al dueño y queda en `.resultados`. Los **selectores** (tipo
+`selector_*`) son encuestas para elegir, de una sola vez, con "✖️ Cancelar" para volver atrás; no cuentan como encuesta del equipo.
+
+**Anti-bucle y seguridad.** Todo envío (incluidos botones y encuestas) registra su id en `_ids_pati`; si no, Pati confundiría su
+propio mensaje con una persona escribiendo y pausaría el chat. Los toques solo actúan sobre tareas abiertas y de quien toca.
+La bitácora `pruebas_equipo.log` anota qué llegó y cómo, **nunca el contenido** de los mensajes.
+
+**Pendiente de la hoja de ruta:** operación confiable (registro de errores en archivo, aviso si se cae, copia diaria), métricas y
+Excel, notas de voz, Pati en grupos, varios negocios en una línea.
