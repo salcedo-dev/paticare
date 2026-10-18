@@ -1,0 +1,48 @@
+{
+  "nombre": "Clínica Demo",
+  "rubro": "veterinaria",
+  "servicios": [
+    {
+      "nombre": "Consulta general",
+      "duracion_min": 30
+    },
+    {
+      "nombre": "Vacunación",
+      "duracion_min": 30
+    },
+    {
+      "nombre": "Baño y corte",
+      "duracion_min": 60
+    }
+  ],
+  "horario": "Lunes a sábado, 9:00 a 18:00",
+  "atender_desconocidos": true,
+  "ignorar": [],
+  "lineas": {
+    "central": "51900000010",
+    "corporativa": "51900000011"
+  },
+  "avisar_completadas": true,
+  "botones": true,
+  "horas_reporte": [
+    "13:00"
+  ],
+  "agenda": {
+    "dias": [
+      "lunes",
+      "martes",
+      "miércoles",
+      "jueves",
+      "viernes",
+      "sábado"
+    ],
+    "desde": "09:00",
+    "hasta": "18:00",
+    "paso_min": 30,
+    "simultaneas": 1,
+    "anticipacion_horas": 2,
+    "dias_adelante": 14,
+    "cerrado": []
+  },
+  "avisar_citas": true
+}

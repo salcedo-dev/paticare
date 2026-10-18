@@ -7,6 +7,8 @@ personas.json
 *.sqlite3-*
 *.bak*
 
+datos/
+
 # Entorno y basura de Python
 venv/
 .venv/
@@ -15,3 +17,13 @@ __pycache__/
 .vscode/
 .idea/
 .claude/
+negocio.json
+uso_gemini.json
+
+pruebas_equipo.log
+
+# Otros
+*.log
+docs/*.pdf
+docs/pptx_build/
+prueba_dos_lineas.py
